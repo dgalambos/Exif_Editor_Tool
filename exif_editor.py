@@ -1,0 +1,372 @@
+import csv
+import exiftool
+import os
+import time
+from tqdm import tqdm
+import argparse
+from pprint import pprint
+
+
+
+extension = ''
+wmark = ''
+gps = ''
+exif = ''
+
+rowCount = 1
+
+def init():
+    output_path = raw_input("Drag destination folder here: ").strip() + "/"
+    csv_filename = raw_input("Designate output CSV filename: ").replace(" ", "_")
+    csvFile = output_path + csv_filename+".csv"
+
+    file_list = []
+
+    more = "yes"
+    while (more == "y" or more == "yes"):
+        images_folder = raw_input("Drag asset folder here: ").strip() + "/"
+        print "\nThere are " + str(
+            len(os.listdir(images_folder))) + " files in this directory..."
+        confirmation = raw_input("\nContinue? (Y/N): ").lower()
+        if (confirmation == "y" or confirmation == "yes"):
+            for file_path in os.listdir(images_folder):
+                if (file_path.startswith(".") or file_path.endswith(".csv")):
+                    print "Ignored: " + file_path
+                    continue
+                else:
+                    file_path = images_folder + file_path
+                    if not os.path.isfile(file_path):
+                        print "ERROR: File %s is not valid." % file_path
+                        continue
+                    else:
+                        file_list.append(file_path)
+        more = raw_input("Add more assets?: ").lower()
+    # pprint(file_list)
+    tags = ["Directory",
+            "Filename",
+            "DateTimeOriginal",
+            "GPSLatitude",
+            "GPSLatitudeRef",
+            "GPSLongitude",
+            "GPSLongitudeRef",
+            "Subject"]
+    metadata = {"File:Directory":"",
+                 "File:FileName":"",
+                 "EXIF:DateTimeOriginal":"",
+                 "EXIF:GPSLatitude":"",
+                 "EXIF:GPSLatitudeRef":"",
+                 "EXIF:GPSLongitude":"",
+                 "EXIF:GPSLongitudeRef":"",
+                 "XMP:Subject":""}
+
+    with exiftool.ExifTool() as et:
+        with open(csvFile, mode='w') as file:
+            writer = csv.writer(file,delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(['Directory',                               # 0
+                            'Filename',                                 # 1
+                            'Date/Time (YYYY:MM:DD HH:MM:SS)',          # 2
+                            'GPS Lat',                                  # 3
+                            'Lat Ref (N/S)',                            # 4
+                            'GPS Long',                                 # 5
+                            'Long Ref (W/E)',                           # 5
+                            'Current Tags',                             # 6
+                            'New Tags (append)',                        # 7
+                             'Watermark'])                              # 8
+            for asset in file_list:
+                # print asset
+                metadata.update(et.get_tags(tags, asset))
+                # pprint("XMP:Subject = ")
+                # pprint(metadata["XMP:Subject"])
+
+                # To make tags more readable
+                temp = []
+                a = metadata["XMP:Subject"]
+                for tag in map(str, a):
+                    temp.append(tag)
+                temp.sort()
+                metadata["XMP:Subject"]=temp
+
+                # pprint(metadata["XMP:Subject"])
+                writer.writerow(
+                    [metadata["File:Directory"],
+                    metadata["File:FileName"],
+                    metadata["EXIF:DateTimeOriginal"],
+                    metadata["EXIF:GPSLatitude"],
+                    metadata["EXIF:GPSLatitudeRef"],
+                    metadata["EXIF:GPSLongitude"],
+                    metadata["EXIF:GPSLongitudeRef"],
+                    metadata["XMP:Subject"]])
+
+        pprint("Generated CSV file: " + csvFile)
+        return csvFile
+
+def getCounts(csvFile):
+    with open(csvFile) as file:
+        reader = csv.reader(file)
+        next(reader, None)
+        global rowCount
+        rowCount = sum(1 for row in reader)
+    print("\nTotal images: " + str(rowCount) + "\n")
+
+
+#
+# def copyMeta(fromImage, toImage):
+#     with exiftool.ExifTool() as et:
+#         et.execute("-TagsFromFile",
+#                    fromImage,
+#                    toImage,
+#                    "-overwrite_original")
+#
+# def addGPS():
+#     print("GPS injection process initiated.")
+#     with exiftool.ExifTool() as et:
+#         with open(extension+csvFile) as file:
+#             reader = csv.reader(file)
+#             next(reader, None)
+#             with tqdm(total=rowCount) as pbar3:
+#                 for row in reader:
+#                     pbar3.set_description('Adding GPS')
+#                     pbar3.update(1)
+#                     filename = row[1]
+#                     stop = row[2]
+#                     if (row[5] and row[6]):
+#                         gps_lat = float(row[5])
+#                         gps_long = float(row[6])
+#                     else:
+#                         gps_lat = ""
+#                         gps_long = ""
+#
+#                     latref = "N"
+#                     longref = "W"
+#                     if (gps_lat and gps_long):
+#                         et.execute("-GPSLongitudeRef=%s" % longref,
+#                                    "-GPSLatitudeRef=%s" % latref,
+#                                    "-GPSLatitude=%f" % gps_lat,
+#                                    "-GPSLongitude=%f" % gps_long,
+#                                    "-Make=Nikon",
+#                                    "-Model=D4300",
+#                                    "-overwrite_original", filename)
+#                     # else: print("Skipped: " + filename)
+#
+#     print("GPS injection process completed.\n")
+#
+# def addDateTime():
+#     print("Date/Time injection process initiated.")
+#     with exiftool.ExifTool() as et:
+#         with open(extension + csvFile) as file:
+#             reader = csv.reader(file)
+#             next(reader, None)
+#             with tqdm(total=rowCount) as pbar4:
+#                 for row in reader:
+#                     pbar4.set_description('Adding Date/Time')
+#                     pbar4.update(1)
+#                     filename = row[1]
+#                     if (row[7]):
+#                         datetime = row[7]
+#                     else:
+#                         datetime = ''
+#                     if (datetime):
+#                         et.execute("-Time:all=%s" % datetime,
+#                                    "-Make=Nikon",
+#                                    "-Model=D4300",
+#                                    "-overwrite_original", filename)
+#                     # else: print("Skipped: " + filename)
+#     print("Date/Time injection process completed.\n")
+
+
+def updateKeywords():
+    print("Update keywords process initiated.")
+    with exiftool.ExifTool() as et:
+        with open('/Users/Doron/Downloads/Disney_GPS_and_Watermark') as file:
+            reader = csv.reader(file)
+            next(reader, None)
+            # with tqdm(total=rowCount) as pbar5:
+            for row in reader:
+                filename = row[0]
+                subject = row[1]
+                gps_lat = row[2]
+                gps_long = row[3]
+                latref = "N"
+                longref = "W"
+                # pbar5.set_description('Updating Keywords')
+                # pbar5.update(1)
+                # if (row[1]):
+                #     datetime = row[1]
+                # else:
+                #     datetime = ''
+                # print filename
+                # if (filename):
+                et.get_tags("-GPSLatitude", filename)
+                # et.execute("-GPSLongitudeRef=%s" % longref,
+                #            "-GPSLatitudeRef=%s" % latref,
+                #            "-GPSLatitude=%f" % gps_lat,
+                #            "-GPSLongitude=%f" % gps_long,
+                #            "-overwrite_original", filename)
+                    # print(et.get_tag("Subject", filename))
+                # else: print("Skipped: " + filename)
+                # a = (row[1].split(','))
+    print("Update keywords process completed.\n")
+
+
+def wipe(csvFile):
+    print("EXIF deletion process initiated.")
+    with exiftool.ExifTool() as et:
+        with open(csvFile) as file:
+            reader = csv.reader(file)
+            next(reader, None)
+            with tqdm(total=rowCount) as pbar3:
+                for row in reader:
+                    fpath = row[0] + "/" + row[1]
+                    et.execute("-all=",
+                               "-overwrite_original",fpath)
+    print("EXIF deletion process completed.\n")
+
+
+def addDateTime(csvFile):
+    global rowCount
+    print("Date/Time (all) injection process initiated.")
+    with exiftool.ExifTool() as et:
+        with open(csvFile) as file:
+            reader = csv.reader(file)
+            next(reader, None)
+            with tqdm(total=rowCount) as pbar3:
+                for row in reader:
+                    pbar3.set_description('Adding GPS')
+                    pbar3.update(1)
+                    fpath = row[0] + "/" + row[1]
+                    datetime = row[2]
+                    et.execute("-Time:all=%s" % datetime,
+                               "-Make=Nikon",
+                               "-Model=D4300",
+                               "-overwrite_original",fpath)
+    print("Date/Time (all) injection process completed.\n")
+
+
+def addGPS(csvFile):
+    global rowCount
+    print("GPS injection process initiated.")
+    with exiftool.ExifTool() as et:
+        with open(extension+csvFile) as file:
+            reader = csv.reader(file)
+            next(reader, None)
+            with tqdm(total=rowCount) as pbar3:
+                for row in reader:
+                    pbar3.set_description('Adding GPS')
+                    pbar3.update(1)
+                    fpath = row[0] + "/" + row[1]
+
+                    if (row[3] and row[4] and row[5] and row[6]):
+                        gps_lat = float(row[3])
+                        latref = row[4]
+                        gps_long = float(row[5])
+                        longref = row[6]
+
+                    if (gps_lat and gps_long):
+                        et.execute("-GPSLongitudeRef=%s" % longref,
+                                   "-GPSLatitudeRef=%s" % latref,
+                                   "-GPSLatitude=%f" % gps_lat,
+                                   "-GPSLongitude=%f" % gps_long,
+                                   "-Make=Nikon",
+                                   "-Model=D4300",
+                                   "-overwrite_original", fpath)
+                    # else: print("Skipped: " + filename)
+
+    print("GPS injection process completed.\n")
+
+def addSubject(csvFile):
+    global rowCount
+    print("GPS injection process initiated.")
+    with exiftool.ExifTool() as et:
+        with open(extension+csvFile) as file:
+            reader = csv.reader(file)
+            next(reader, None)
+            with tqdm(total=rowCount) as pbar3:
+                for row in reader:
+                    pbar3.set_description('Adding GPS')
+                    pbar3.update(1)
+                    fpath = row[0] + "/" + row[1]
+                    final1 = []
+                    final2 = []
+                    if row[8]:
+                        original_tags = row[7][1:-1].split(",")
+                        for word in original_tags:
+                            word = word.strip()[1:-1].strip()
+                            final1.append(word)
+
+                        new_tags = row[8].split(",")
+                        for word in new_tags:
+                            word = word.strip()
+                            final2.append(word)
+                        if row[7] != '[]':
+                            final2 = list(set(final1).union(set(final2)))
+                        for word in final2:
+                            et.execute("-Subject+=%s" % word,
+                                       "-Make=Nikon",
+                                       "-Model=D4300",
+                                       "-overwrite_original", fpath)
+                    # else: print("Skipped: " + filename)
+
+    print("GPS injection process completed.\n")
+
+
+def generateCSV():
+    file_list = '/Users/Doron/Downloads/Disney_GPS_and_Watermark/'
+    for file_path in os.listdir(file_list):
+        if file_path == ".DS_Store":
+            continue
+        else:
+            file_path = file_list + file_path
+            if not os.path.isfile(file_path):
+                print "ERROR: File %s doesn't exist." % file_path
+                continue
+            else:
+                print file_path
+
+
+
+def main():
+    global rowCount
+    global csvFile
+
+    parser = argparse.ArgumentParser(description='Script used to edit EXIF data',
+                                    epilog='Example:\npython exif_editor.py\
+                                    --wipe true\
+                                    --csv true\
+                                    --gps true\
+                                    --time true\
+                                    --tags true')
+
+    parser.add_argument('--wipe', required=False, help='Wipe EXIF')
+    parser.add_argument('--csv', required=False, help='Generate CSV')
+    parser.add_argument('--gps', required=False, help='Inject GPS')
+    parser.add_argument('--time', required=False, help='Inject Date/Time')
+    parser.add_argument('--tags', required=False, help='Inject Tags/Keywords')
+
+
+    args = parser.parse_args()
+    # csvFile = '/Users/Doron/Downloads/testing/clean.csv'
+    if args.csv:
+        csvFile = init()
+    else:
+        csvFile = raw_input("Drag CSV here").strip()
+
+    start = time.time()
+    getCounts(csvFile)
+    if args.wipe:
+        wipe(csvFile)
+    if args.time:
+        addDateTime(csvFile)
+    if args.gps:
+        addGPS(csvFile)
+    if args.tags:
+        addSubject(csvFile)
+    end = time.time()
+    timePassed = end-start
+    print("DONE\n")
+    print("Total time: " + str(timePassed))
+    print("Avg. time per image: " + str(timePassed/rowCount))
+    # init()
+
+
+if __name__ == "__main__":
+    main()
