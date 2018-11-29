@@ -23,6 +23,7 @@ def init():
     more = "yes"
     while (more == "y" or more == "yes"):
         images_folder = raw_input("Drag asset folder here: ").strip() + "/"
+        images_folder = images_folder.replace("\"", "")
         print "\nThere are " + str(
             len(os.listdir(images_folder))) + " files in this directory..."
         confirmation = raw_input("\nContinue? (Y/N): ").lower()
@@ -119,6 +120,10 @@ def addWatermark(csvFile):
     print("Watermarking process initiated.")
     folder = raw_input("Drag watermark destination folder here: ").strip() + "/Watermarked_Images/"
     folder = folder.replace("\"", "")
+    font_name = 'Arial.ttf'
+    if os.name == 'nt':
+        font_name = 'C:\Windows\Fonts\\' + font_name
+
     with open(csvFile) as file:
         reader = csv.reader(file)
         next(reader, None)
@@ -135,18 +140,19 @@ def addWatermark(csvFile):
                 fontsize = 2
                 #restrict text size to 10% of height of image
                 height_fraction = 0.1
-                font = ImageFont.truetype("Arial.ttf", fontsize)
+
+                font = ImageFont.truetype(font_name, fontsize)
 
                 # Fit text onto image
                 while (font.getsize(watermark)[1] < height_fraction * image.size[1])\
                         and (font.getsize(watermark)[0] < image.size[0])\
                         and watermark :
                     fontsize += 1
-                    font = ImageFont.truetype("Arial.ttf", fontsize)
+                    font = ImageFont.truetype(font_name, fontsize)
 
                 # ensure font size isn't too big
                 fontsize -= 1
-                font = ImageFont.truetype("Arial.ttf", fontsize)
+                font = ImageFont.truetype(font_name, fontsize)
                 draw.text((5, 5), watermark, (255, 0, 0, 0), font=font)
                 filename = os.path.basename(row[1])
                 filename = os.path.splitext(filename)[0]
@@ -289,8 +295,10 @@ def main():
 
     if args.csv:
         csvFile = init()
+        csvFile = csvFile.replace("\"", "")
     else:
         csvFile = raw_input("Drag CSV here: ").strip()
+        csvFile = csvFile.replace("\"", "")
 
     start = time.time()
     getCounts(csvFile)
