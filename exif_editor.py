@@ -5,6 +5,9 @@ import time
 from tqdm import tqdm
 import argparse
 from pprint import pprint
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 rowCount = 1
 
@@ -62,10 +65,10 @@ def init():
                             'GPS Lat',                                  # 3
                             'Lat Ref (N/S)',                            # 4
                             'GPS Long',                                 # 5
-                            'Long Ref (W/E)',                           # 5
-                            'Current Tags',                             # 6
-                            'New Tags (append)',                        # 7
-                             'Watermark'])                              # 8
+                            'Long Ref (W/E)',                           # 6
+                            'Current Tags',                             # 7
+                            'New Tags (append)',                        # 8
+                             'Watermark'])                              # 9
             for asset in file_list:
                 # print asset
                 metadata.update(et.get_tags(tags, asset))
@@ -110,6 +113,50 @@ def copyMeta(fromImage, toImage):
                    fromImage,
                    toImage,
                    "-overwrite_original")
+
+def addWatermark(csvFile):
+    print("Watermarking process initiated.")
+    folder = raw_input("Drag watermark destination folder here: ").strip() + "/Watermarked_Images/"
+    with open(csvFile) as file:
+        reader = csv.reader(file)
+        next(reader, None)
+        with tqdm(total=rowCount) as pbar:
+            for row in reader:
+                pbar.set_description('Watermarking')
+                pbar.update(1)
+                fpath = row[0] + "/" + row[1]
+
+                watermark = row[9]
+                image = Image.open(fpath, "r")
+                draw = ImageDraw.Draw(image)
+
+                fontsize = 2
+                #restrict text size to 10% of height of image
+                height_fraction = 0.1
+                font = ImageFont.truetype("Arial.ttf", fontsize)
+
+                # Fit text onto image
+                while (font.getsize(watermark)[1] < height_fraction * image.size[1])\
+                        and (font.getsize(watermark)[0] < image.size[0])\
+                        and watermark :
+                    fontsize += 1
+                    font = ImageFont.truetype("Arial.ttf", fontsize)
+
+                # ensure font size isn't too big
+                fontsize -= 1
+                font = ImageFont.truetype("Arial.ttf", fontsize)
+                draw.text((5, 5), watermark, (255, 0, 0, 0), font=font)
+                filename = os.path.basename(row[1])
+                filename = os.path.splitext(filename)[0]
+                wMarkedFilename = filename + '_watermarked.jpg'
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+                    print("Created Directory: " + folder)
+                image.save(folder+wMarkedFilename)
+                copyMeta(fpath, folder+wMarkedFilename)
+                # print("Saved image to " + folder + wMarkedFilename)
+    print("Watermarking process completed.\n")
+
 
 
 
@@ -204,6 +251,7 @@ def addSubject(csvFile):
                             final2.append(word)
                         if row[7] != '[]':
                             final2 = list(set(final1).union(set(final2)))
+                        final2.sort()
                         for word in final2:
                             et.execute("-Subject+=%s" % word,
                                        "-Make=Nikon",
@@ -224,12 +272,14 @@ def main():
                                     --csv true\
                                     --gps true\
                                     --time true\
+                                    --watermark true\
                                     --tags true')
 
     parser.add_argument('--wipe', required=False, help='Wipe EXIF')
     parser.add_argument('--csv', required=False, help='Generate CSV')
     parser.add_argument('--gps', required=False, help='Inject GPS')
     parser.add_argument('--time', required=False, help='Inject Date/Time')
+    parser.add_argument('--watermark', required=False, help='Add watermark to image')
     parser.add_argument('--tags', required=False, help='Inject Tags/Keywords')
 
 
@@ -238,10 +288,11 @@ def main():
     if args.csv:
         csvFile = init()
     else:
-        csvFile = raw_input("Drag CSV here").strip()
+        csvFile = raw_input("Drag CSV here: ").strip()
 
     start = time.time()
     getCounts(csvFile)
+
     if args.wipe:
         wipe(csvFile)
     if args.time:
@@ -250,6 +301,9 @@ def main():
         addGPS(csvFile)
     if args.tags:
         addSubject(csvFile)
+    if args.watermark:
+        addWatermark(csvFile)
+
     end = time.time()
     timePassed = end-start
     print("DONE\n")
