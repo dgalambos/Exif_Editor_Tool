@@ -13,6 +13,7 @@ rowCount = 1
 
 def init():
     output_path = raw_input("Drag destination folder here: ").strip() + "/"
+    output_path = output_path.replace("\"", "")
     csv_filename = raw_input("Designate output CSV filename: ").replace(" ", "_")
     csv_filename = csv_filename.replace(".csv", "")
     csvFile = output_path + csv_filename+".csv"
@@ -117,6 +118,7 @@ def copyMeta(fromImage, toImage):
 def addWatermark(csvFile):
     print("Watermarking process initiated.")
     folder = raw_input("Drag watermark destination folder here: ").strip() + "/Watermarked_Images/"
+    folder = folder.replace("\"", "")
     with open(csvFile) as file:
         reader = csv.reader(file)
         next(reader, None)
