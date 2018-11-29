@@ -6,18 +6,12 @@ from tqdm import tqdm
 import argparse
 from pprint import pprint
 
-
-
-extension = ''
-wmark = ''
-gps = ''
-exif = ''
-
 rowCount = 1
 
 def init():
     output_path = raw_input("Drag destination folder here: ").strip() + "/"
     csv_filename = raw_input("Designate output CSV filename: ").replace(" ", "_")
+    csv_filename = csv_filename.replace(".csv", "")
     csvFile = output_path + csv_filename+".csv"
 
     file_list = []
@@ -40,7 +34,7 @@ def init():
                         continue
                     else:
                         file_list.append(file_path)
-        more = raw_input("Add more assets?: ").lower()
+            more = raw_input("Add more assets?: ").lower()
     # pprint(file_list)
     tags = ["Directory",
             "Filename",
@@ -109,103 +103,14 @@ def getCounts(csvFile):
     print("\nTotal images: " + str(rowCount) + "\n")
 
 
-#
-# def copyMeta(fromImage, toImage):
-#     with exiftool.ExifTool() as et:
-#         et.execute("-TagsFromFile",
-#                    fromImage,
-#                    toImage,
-#                    "-overwrite_original")
-#
-# def addGPS():
-#     print("GPS injection process initiated.")
-#     with exiftool.ExifTool() as et:
-#         with open(extension+csvFile) as file:
-#             reader = csv.reader(file)
-#             next(reader, None)
-#             with tqdm(total=rowCount) as pbar3:
-#                 for row in reader:
-#                     pbar3.set_description('Adding GPS')
-#                     pbar3.update(1)
-#                     filename = row[1]
-#                     stop = row[2]
-#                     if (row[5] and row[6]):
-#                         gps_lat = float(row[5])
-#                         gps_long = float(row[6])
-#                     else:
-#                         gps_lat = ""
-#                         gps_long = ""
-#
-#                     latref = "N"
-#                     longref = "W"
-#                     if (gps_lat and gps_long):
-#                         et.execute("-GPSLongitudeRef=%s" % longref,
-#                                    "-GPSLatitudeRef=%s" % latref,
-#                                    "-GPSLatitude=%f" % gps_lat,
-#                                    "-GPSLongitude=%f" % gps_long,
-#                                    "-Make=Nikon",
-#                                    "-Model=D4300",
-#                                    "-overwrite_original", filename)
-#                     # else: print("Skipped: " + filename)
-#
-#     print("GPS injection process completed.\n")
-#
-# def addDateTime():
-#     print("Date/Time injection process initiated.")
-#     with exiftool.ExifTool() as et:
-#         with open(extension + csvFile) as file:
-#             reader = csv.reader(file)
-#             next(reader, None)
-#             with tqdm(total=rowCount) as pbar4:
-#                 for row in reader:
-#                     pbar4.set_description('Adding Date/Time')
-#                     pbar4.update(1)
-#                     filename = row[1]
-#                     if (row[7]):
-#                         datetime = row[7]
-#                     else:
-#                         datetime = ''
-#                     if (datetime):
-#                         et.execute("-Time:all=%s" % datetime,
-#                                    "-Make=Nikon",
-#                                    "-Model=D4300",
-#                                    "-overwrite_original", filename)
-#                     # else: print("Skipped: " + filename)
-#     print("Date/Time injection process completed.\n")
 
-
-def updateKeywords():
-    print("Update keywords process initiated.")
+def copyMeta(fromImage, toImage):
     with exiftool.ExifTool() as et:
-        with open('/Users/Doron/Downloads/Disney_GPS_and_Watermark') as file:
-            reader = csv.reader(file)
-            next(reader, None)
-            # with tqdm(total=rowCount) as pbar5:
-            for row in reader:
-                filename = row[0]
-                subject = row[1]
-                gps_lat = row[2]
-                gps_long = row[3]
-                latref = "N"
-                longref = "W"
-                # pbar5.set_description('Updating Keywords')
-                # pbar5.update(1)
-                # if (row[1]):
-                #     datetime = row[1]
-                # else:
-                #     datetime = ''
-                # print filename
-                # if (filename):
-                et.get_tags("-GPSLatitude", filename)
-                # et.execute("-GPSLongitudeRef=%s" % longref,
-                #            "-GPSLatitudeRef=%s" % latref,
-                #            "-GPSLatitude=%f" % gps_lat,
-                #            "-GPSLongitude=%f" % gps_long,
-                #            "-overwrite_original", filename)
-                    # print(et.get_tag("Subject", filename))
-                # else: print("Skipped: " + filename)
-                # a = (row[1].split(','))
-    print("Update keywords process completed.\n")
+        et.execute("-TagsFromFile",
+                   fromImage,
+                   toImage,
+                   "-overwrite_original")
+
 
 
 def wipe(csvFile):
@@ -246,7 +151,7 @@ def addGPS(csvFile):
     global rowCount
     print("GPS injection process initiated.")
     with exiftool.ExifTool() as et:
-        with open(extension+csvFile) as file:
+        with open(csvFile) as file:
             reader = csv.reader(file)
             next(reader, None)
             with tqdm(total=rowCount) as pbar3:
@@ -277,7 +182,7 @@ def addSubject(csvFile):
     global rowCount
     print("GPS injection process initiated.")
     with exiftool.ExifTool() as et:
-        with open(extension+csvFile) as file:
+        with open(csvFile) as file:
             reader = csv.reader(file)
             next(reader, None)
             with tqdm(total=rowCount) as pbar3:
@@ -309,21 +214,6 @@ def addSubject(csvFile):
     print("GPS injection process completed.\n")
 
 
-def generateCSV():
-    file_list = '/Users/Doron/Downloads/Disney_GPS_and_Watermark/'
-    for file_path in os.listdir(file_list):
-        if file_path == ".DS_Store":
-            continue
-        else:
-            file_path = file_list + file_path
-            if not os.path.isfile(file_path):
-                print "ERROR: File %s doesn't exist." % file_path
-                continue
-            else:
-                print file_path
-
-
-
 def main():
     global rowCount
     global csvFile
@@ -344,7 +234,7 @@ def main():
 
 
     args = parser.parse_args()
-    # csvFile = '/Users/Doron/Downloads/testing/clean.csv'
+
     if args.csv:
         csvFile = init()
     else:
