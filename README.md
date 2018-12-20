@@ -39,7 +39,7 @@ Pillow==5.3.0
 pyexiftool
 ```
 
-### Examples
+# Examples
 
 | Command | Description | Example |
 | ------ | ------ | ------ |
