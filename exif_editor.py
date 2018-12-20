@@ -59,7 +59,7 @@ def init():
                  "XMP:Subject":""}
 
     with exiftool.ExifTool() as et:
-        with open(csvFile, mode='w') as file:
+        with open(csvFile, mode='wb') as file:
             writer = csv.writer(file,delimiter=',', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(['Directory',                               # 0
                             'Filename',                                 # 1
