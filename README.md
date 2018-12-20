@@ -57,7 +57,9 @@ pyexiftool
 | `--watermark` | Adds watermark to photos (EXIF data copied over) to new folder. New images will be appended '_watermark' after filename | ```$ python exif_editor.py --watermark true``` |
 | `--tags` | Adds tags/keywords to the image. New keywords get appended to old list and alphabetically ordered | ```$ python exif_editor.py --tags true``` |
 
+
 Commands can be stacked, too:
+
 | Command | Description | Example |
 | ------ | ------ | ------ |
 | `--tags --watermark` | Adds tags/keywords and also watermarks the images | ```$ python exif_editor.py --tags true --watermark true``` |
