@@ -20,9 +20,9 @@ git clone https://github.com/dgalambos/Exif_Editor_Tool.git
 ### Installation
 
 * Pre-requisites
-    * EXIF Editor Tool requires [Python 2.7](https://www.python.org/download/releases/2.7/) and [Pip](https://pip.pypa.io/en/stable/installing/) to run install the pre-requisites.
+    * EXIF Editor Tool requires [Python 2.7](https://www.python.org/download/releases/2.7/), [Pip](https://pip.pypa.io/en/stable/installing/), as well as [PyExifTool](https://github.com/smarnach/pyexiftool) to run install the pre-requisites.
 
-*Once `Python 2.7` and `Pip` are installed:*
+*Once `Python 2.7`, `Pip` and `PyExifTool` are installed:*
 
 Install the dependencies via Pip and the requirements.txt:
 
@@ -36,7 +36,6 @@ Current requirements are:
 ```sh
 tqdm==4.28.1
 Pillow==5.3.0
-pyexiftool
 ```
 
 # Examples
