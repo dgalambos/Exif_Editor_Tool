@@ -40,13 +40,6 @@ pyexiftool
 ```
 
 ### Examples
-    parser.add_argument('', required=False, help='Wipe EXIF')
-    parser.add_argument('--csv', required=False, help='Generate CSV')
-    parser.add_argument('--gps', required=False, help='Inject GPS')
-    parser.add_argument('--time', required=False, help='Inject Date/Time')
-    parser.add_argument('--watermark', required=False, help='Add watermark to image')
-    parser.add_argument('--tags', required=False, help='Inject Tags/Keywords')
-
 
 | Command | Description | Example |
 | ------ | ------ | ------ |
