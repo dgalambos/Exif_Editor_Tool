@@ -235,7 +235,7 @@ def addGPS(csvFile):
 
 def addSubject(csvFile):
     global rowCount
-    print("GPS injection process initiated.")
+    print("Tag injection process initiated.")
     with exiftool.ExifTool() as et:
         with open(csvFile) as file:
             reader = csv.reader(file)
@@ -267,7 +267,7 @@ def addSubject(csvFile):
                                        "-overwrite_original", fpath)
                     # else: print("Skipped: " + filename)
 
-    print("GPS injection process completed.\n")
+    print("Tag injection process completed.\n")
 
 
 def main():
