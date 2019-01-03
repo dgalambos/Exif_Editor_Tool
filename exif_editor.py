@@ -191,7 +191,7 @@ def addDateTime(csvFile):
             next(reader, None)
             with tqdm(total=rowCount) as pbar3:
                 for row in reader:
-                    pbar3.set_description('Adding GPS')
+                    pbar3.set_description('Adding DateTime')
                     pbar3.update(1)
                     fpath = row[0] + "/" + row[1]
                     datetime = row[2]
@@ -242,7 +242,7 @@ def addSubject(csvFile):
             next(reader, None)
             with tqdm(total=rowCount) as pbar3:
                 for row in reader:
-                    pbar3.set_description('Adding GPS')
+                    pbar3.set_description('Adding Tags')
                     pbar3.update(1)
                     fpath = row[0] + "/" + row[1]
                     final1 = []
