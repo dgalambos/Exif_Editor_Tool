@@ -73,17 +73,24 @@ def init():
                              'Watermark'])                              # 9
             for asset in file_list:
                 # print asset
-                metadata.update(et.get_tags(tags, asset))
-                # pprint("XMP:Subject = ")
-                # pprint(metadata["XMP:Subject"])
+                metadata = {"File:Directory": "",
+                            "File:FileName": "",
+                            "EXIF:DateTimeOriginal": "",
+                            "EXIF:GPSLatitude": "",
+                            "EXIF:GPSLatitudeRef": "",
+                            "EXIF:GPSLongitude": "",
+                            "EXIF:GPSLongitudeRef": "",
+                            "XMP:Subject": ""}
+                metadata.update(et.get_tags(metadata, asset))
+
 
                 # To make tags more readable
                 temp = []
-                a = metadata["XMP:Subject"]
-                for tag in map(str, a):
-                    temp.append(tag)
+                # a = metadata["XMP:Subject"]
+                # for tag in map(str, a):
+                #     temp.append(tag)
                 temp.sort()
-                metadata["XMP:Subject"]=temp
+                # metadata["XMP:Subject"]=temp
 
                 # pprint(metadata["XMP:Subject"])
                 writer.writerow(
@@ -94,7 +101,8 @@ def init():
                     metadata["EXIF:GPSLatitudeRef"],
                     metadata["EXIF:GPSLongitude"],
                     metadata["EXIF:GPSLongitudeRef"],
-                    metadata["XMP:Subject"]])
+                    metadata["XMP:Subject"],
+                    metadata["XMP:Headline"]])
 
         pprint("Generated CSV file: " + csvFile)
         return csvFile
@@ -214,6 +222,11 @@ def addGPS(csvFile):
                     pbar3.set_description('Adding GPS')
                     pbar3.update(1)
                     fpath = row[0] + "/" + row[1]
+
+                    gps_lat = None
+                    gps_long = None
+                    latref = None
+                    longref = None
 
                     if (row[3] and row[4] and row[5] and row[6]):
                         gps_lat = float(row[3])
