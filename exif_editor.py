@@ -101,8 +101,7 @@ def init():
                     metadata["EXIF:GPSLatitudeRef"],
                     metadata["EXIF:GPSLongitude"],
                     metadata["EXIF:GPSLongitudeRef"],
-                    metadata["XMP:Subject"],
-                    metadata["XMP:Headline"]])
+                    metadata["XMP:Subject"]])
 
         pprint("Generated CSV file: " + csvFile)
         return csvFile
@@ -137,6 +136,8 @@ def addWatermark(csvFile):
         next(reader, None)
         with tqdm(total=rowCount) as pbar:
             for row in reader:
+                uuid_folder = folder + row[11] + "/"
+                uuid_folder = uuid_folder.replace("\"", "")
                 pbar.set_description('Watermarking')
                 pbar.update(1)
                 fpath = row[0] + "/" + row[1]
@@ -165,11 +166,11 @@ def addWatermark(csvFile):
                 filename = os.path.basename(row[1])
                 filename = os.path.splitext(filename)[0]
                 wMarkedFilename = filename + '_watermarked.jpg'
-                if not os.path.exists(folder):
-                    os.makedirs(folder)
-                    print("Created Directory: " + folder)
-                image.save(folder+wMarkedFilename)
-                copyMeta(fpath, folder+wMarkedFilename)
+                if not os.path.exists(uuid_folder):
+                    os.makedirs(uuid_folder)
+                    print("Created Directory: " + uuid_folder)
+                image.save(uuid_folder+wMarkedFilename)
+                copyMeta(fpath, uuid_folder+wMarkedFilename)
                 # print("Saved image to " + folder + wMarkedFilename)
     print("Watermarking process completed.\n")
 
