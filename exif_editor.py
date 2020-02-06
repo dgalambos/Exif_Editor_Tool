@@ -136,7 +136,7 @@ def addWatermark(csvFile):
         next(reader, None)
         with tqdm(total=rowCount) as pbar:
             for row in reader:
-                uuid_folder = folder + row[11] + "/"
+                uuid_folder = folder 
                 uuid_folder = uuid_folder.replace("\"", "")
                 pbar.set_description('Watermarking')
                 pbar.update(1)
